@@ -39,7 +39,7 @@ An AI-powered career guidance platform that helps students discover suitable tec
 ### 2. Clone & Install
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/prasannaadithyaa28/Career-Guidance
 cd career-guid
 cd backend
 npm install
