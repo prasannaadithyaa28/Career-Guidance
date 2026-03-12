@@ -1,0 +1,92 @@
+[
+  {
+    "id": "q1",
+    "question": "What does a variable do in programming?",
+    "options": [
+      { "text": "Stores data values", "score": { "programming": 10 } },
+      { "text": "Executes logic", "score": { "programming": 0 } },
+      { "text": "Designs UI", "score": { "programming": 0 } }
+    ]
+  },
+  {
+    "id": "q2",
+    "question": "If A > B and B > C, what is the relation between A and C?",
+    "options": [
+      { "text": "A > C", "score": { "logical": 10 } },
+      { "text": "A < C", "score": { "logical": 0 } },
+      { "text": "Cannot be determined", "score": { "logical": 0 } }
+    ]
+  },
+  {
+    "id": "q3",
+    "question": "Which of these is fundamental to responsive web design?",
+    "options": [
+      { "text": "Media Queries", "score": { "programming": 10, "tech_basics": 5 } },
+      { "text": "Database indexing", "score": { "programming": 0 } },
+      { "text": "C++ compilation", "score": { "programming": 0 } }
+    ]
+  },
+  {
+    "id": "q4",
+    "question": "How do you explain a complex technical concept to a non-technical stakeholder?",
+    "options": [
+      { "text": "Use simple analogies and focus on business value", "score": { "communication": 10 } },
+      { "text": "Show them the code directly", "score": { "communication": 0 } },
+      { "text": "Use deep technical jargon so they understand the complexity", "score": { "communication": 0 } }
+    ]
+  },
+  {
+    "id": "q5",
+    "question": "What is the primary role of a database?",
+    "options": [
+      { "text": "To store, manage, and retrieve data efficiently", "score": { "tech_basics": 10, "programming": 5 } },
+      { "text": "To style a webpage", "score": { "tech_basics": 0 } },
+      { "text": "To check internet speed", "score": { "tech_basics": 0 } }
+    ]
+  },
+  {
+    "id": "q6",
+    "question": "What statistical measure would you use to find the most common value in a dataset?",
+    "options": [
+      { "text": "Mean", "score": { "logical": 0 } },
+      { "text": "Mode", "score": { "logical": 10, "tech_basics": 5 } },
+      { "text": "Median", "score": { "logical": 0 } }
+    ]
+  },
+  {
+    "id": "q7",
+    "question": "In a team meeting, someone strongly disagrees with your technical proposal. How do you respond?",
+    "options": [
+      { "text": "Listen to their concerns and objectively discuss trade-offs", "score": { "communication": 10 } },
+      { "text": "Ignore them and proceed", "score": { "communication": 0 } },
+      { "text": "Argue until they agree with you", "score": { "communication": 0 } }
+    ]
+  },
+  {
+    "id": "q8",
+    "question": "What does UI/UX stand for?",
+    "options": [
+      { "text": "User Interface / User Experience", "score": { "tech_basics": 10 } },
+      { "text": "Universal Internet / Universal Exchange", "score": { "tech_basics": 0 } },
+      { "text": "Uniform Input / Uniform X-axis", "score": { "tech_basics": 0 } }
+    ]
+  },
+  {
+    "id": "q9",
+    "question": "If a system gets hacked due to an unpatched vulnerability, what concept does this relate to?",
+    "options": [
+      { "text": "Cybersecurity", "score": { "tech_basics": 10 } },
+      { "text": "Data Science", "score": { "tech_basics": 0 } },
+      { "text": "UI Design", "score": { "tech_basics": 0 } }
+    ]
+  },
+  {
+    "id": "q10",
+    "question": "Which loop condition ensures a block runs exactly 5 times?",
+    "options": [
+      { "text": "for(i=0; i<5; i++)", "score": { "programming": 10, "logical": 5 } },
+      { "text": "for(i=1; i<5; i++)", "score": { "programming": 0 } },
+      { "text": "while(true)", "score": { "programming": 0 } }
+    ]
+  }
+]

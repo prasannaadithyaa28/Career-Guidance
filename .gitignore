@@ -1,0 +1,30 @@
+### Node / Backend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+### Environment & Secrets
+.env
+.env.*
+*.local
+
+### Logs
+logs/
+*.log
+debug.log*
+
+### OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+### Build / Output (if added later)
+dist/
+build/
+coverage/
+

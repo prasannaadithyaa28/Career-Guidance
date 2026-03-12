@@ -1,0 +1,104 @@
+[
+  {
+    "id": "role_web_dev",
+    "title": "Web Developer",
+    "criteria": {
+      "programming": 20,
+      "tech_basics": 10
+    },
+    "requiredSkills": ["HTML/CSS", "JavaScript", "React", "Node.js", "Git"],
+    "learningPath": [
+      "Learn HTML & CSS Basics",
+      "Master JavaScript fundamentals",
+      "Learn React for Frontend",
+      "Learn Node.js for Backend",
+      "Build full-stack applications"
+    ],
+    "courses": [
+      "FreeCodeCamp: Responsive Web Design",
+      "Codecademy: Full-Stack Engineer Path",
+      "Udemy: The Complete Web Development Bootcamp"
+    ]
+  },
+  {
+    "id": "role_data_scientist",
+    "title": "Data Scientist",
+    "criteria": {
+      "logical": 15,
+      "programming": 10
+    },
+    "requiredSkills": ["Python", "Statistics", "Machine Learning", "SQL", "Data Visualization"],
+    "learningPath": [
+      "Learn Python and its data libraries (Pandas, NumPy)",
+      "Study Statistics and Probability",
+      "Learn SQL for data extraction",
+      "Master Machine Learning algorithms",
+      "Apply to real-world datasets"
+    ],
+    "courses": [
+      "Coursera: Machine Learning by Andrew Ng",
+      "DataCamp: Data Scientist with Python",
+      "Kaggle: Intro to Machine Learning"
+    ]
+  },
+  {
+    "id": "role_ai_engineer",
+    "title": "AI Engineer",
+    "criteria": {
+      "programming": 25,
+      "logical": 20
+    },
+    "requiredSkills": ["Python", "Deep Learning", "TensorFlow", "Math", "Algorithms"],
+    "learningPath": [
+      "Master Python and Mathematics (Linear Algebra, Calculus)",
+      "Learn Machine Learning basics",
+      "Dive into Deep Learning and Neural Networks",
+      "Learn frameworks like TensorFlow or PyTorch",
+      "Build AI projects"
+    ],
+    "courses": [
+      "Coursera: Deep Learning Specialization",
+      "Udacity: AI Programming with Python"
+    ]
+  },
+  {
+    "id": "role_cybersecurity",
+    "title": "Cybersecurity Analyst",
+    "criteria": {
+      "tech_basics": 20,
+      "logical": 15
+    },
+    "requiredSkills": ["Networking", "Linux", "Ethical Hacking", "Cryptography", "Security Protocols"],
+    "learningPath": [
+      "Learn Networking fundamentals (TCP/IP)",
+      "Learn Linux Administration",
+      "Understand Cryptography",
+      "Learn Ethical Hacking concepts",
+      "Get certified (e.g., CompTIA Security+)"
+    ],
+    "courses": [
+      "Coursera: Google Cybersecurity Professional Certificate",
+      "Cybrary: Intro to Cybersecurity"
+    ]
+  },
+  {
+    "id": "role_ui_ux",
+    "title": "UI/UX Designer",
+    "criteria": {
+      "communication": 15,
+      "tech_basics": 10
+    },
+    "requiredSkills": ["Figma", "Wireframing", "User Research", "Prototyping", "Design Principles"],
+    "learningPath": [
+      "Learn Fundamentals of Visual Design",
+      "Understand User Research methods",
+      "Master UI tools like Figma",
+      "Learn interaction design and prototyping",
+      "Create a design portfolio"
+    ],
+    "courses": [
+      "Coursera: Google UX Design Professional Certificate",
+      "Udemy: Complete Web & Mobile Designer"
+    ]
+  }
+]
