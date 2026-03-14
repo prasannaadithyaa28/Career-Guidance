@@ -1,20 +1,20 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCbhCLqU8PkiHEW75Ugh9VoWocMfK_H3Ro",
-  authDomain: "career-b1341.firebaseapp.com",
-  projectId: "career-b1341",
-  storageBucket: "career-b1341.firebasestorage.app",
-  messagingSenderId: "180152106042",
-  appId: "1:180152106042:web:2dd020873762661de1c903",
-  measurementId: "G-T0C3DCLJW7"
+  apiKey: "AIzaSyCWV9kMhNypfYVr0-rLczunPCKKypDrpks",
+  authDomain: "career-f240c.firebaseapp.com",
+  projectId: "career-f240c",
+  storageBucket: "career-f240c.firebasestorage.app",
+  messagingSenderId: "1019909399721",
+  appId: "1:1019909399721:web:4f98f73dd408ad0d2635b8"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+setPersistence(auth, browserLocalPersistence).catch(err => console.warn("Auth persistence error:", err));
 
 // getAnalytics can throw in localhost / restricted environments — guard it
 let analytics = null;

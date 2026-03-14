@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { Trophy, ArrowRight, SkipForward, RefreshCw, Sparkles } from 'lucide-react';
-import careersData from '../data/careers.json';
+import { Trophy, ArrowRight, SkipForward, RefreshCw, Sparkles, Loader } from 'lucide-react';
+import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
 
 const CATEGORY_LABELS = {
   programming: 'Programming',
@@ -14,6 +16,33 @@ const COLORS = { programming: '#6366f1', logical: '#ec4899', communication: '#10
 const QuizResults = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const [aiCareers, setAiCareers] = useState(null);
+  const [loadingCareers, setLoadingCareers] = useState(true);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    const fetchCareers = async () => {
+      try {
+        try {
+          const res = await axios.get(`http://localhost:5000/recommendations?uid=${currentUser.uid}`);
+          setAiCareers(res.data.recommendedCareers);
+        } catch (err) {
+          if (err.response?.status === 404) {
+            const genRes = await axios.post(`http://localhost:5000/recommend-careers`, { uid: currentUser.uid });
+            setAiCareers(genRes.data.recommendedCareers);
+          } else {
+            throw err;
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load AI careers for result page:", e);
+      } finally {
+        setLoadingCareers(false);
+      }
+    };
+    fetchCareers();
+  }, [currentUser]);
 
   if (!state?.result) {
     return (
@@ -33,11 +62,7 @@ const QuizResults = () => {
     fullMark: maxScore
   }));
 
-  // Determine recommended careers from scores
-  const recommended = careersData.filter(career => {
-    return Object.entries(career.criteria).every(([cat, req]) => (scores[cat] || 0) >= req);
-  });
-  const displayCareers = recommended.length > 0 ? recommended : careersData.slice(0, 2);
+  const displayCareers = aiCareers || [];
   const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
   const maxTotal = Object.keys(scores).length * maxScore;
   const percentage = Math.round((totalScore / maxTotal) * 100);
@@ -105,24 +130,33 @@ const QuizResults = () => {
       )}
 
       {/* Career Recommendations */}
-      <h2 style={{ marginBottom: '1.5rem' }}>
-        <Trophy size={22} style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'middle' }} color="var(--warning)" />
+      <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center' }}>
+        <Trophy size={22} style={{ marginRight: '0.5rem' }} color="var(--warning)" />
         Recommended Career Paths
+        {loadingCareers && <Loader size={18} style={{ marginLeft: '1rem', animation: 'spin 1s linear infinite' }} color="var(--primary)" />}
       </h2>
       <div className="grid grid-cols-2" style={{ gap: '1.5rem', marginBottom: '3rem' }}>
-        {displayCareers.map((career, i) => (
+        {!loadingCareers && displayCareers.map((career, i) => (
           <div key={i} className="glass-panel" style={{ padding: '2rem' }}>
-            <h3 style={{ marginBottom: '1rem' }}>{career.title}</h3>
+            <h3 style={{ marginBottom: '1rem', color: 'var(--text-bright)' }}>{career.title}</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.5rem' }}>
-              {career.requiredSkills.slice(0, 4).map((skill, j) => (
-                <span key={j} style={{ background: 'rgba(99,102,241,0.15)', color: 'var(--primary)', padding: '3px 10px', borderRadius: '99px', fontSize: '0.8rem' }}>{skill}</span>
+              {career.skills?.slice(0, 4).map((skill, j) => (
+                <span key={j} style={{ background: 'rgba(99,102,241,0.15)', color: 'var(--primary)', padding: '4px 12px', borderRadius: '99px', fontSize: '0.8rem' }}>{skill}</span>
               ))}
             </div>
-            <Link to={`/skill-gap/${career.id}`} className="btn btn-outline" style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
-              View Skill Roadmap <ArrowRight size={18} />
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              <strong>Next Step:</strong> {career.learningPath?.[0]}
+            </p>
+            <Link to="/recommendation" className="btn btn-outline" style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
+              View Full Details <ArrowRight size={18} />
             </Link>
           </div>
         ))}
+        {!loadingCareers && displayCareers.length === 0 && (
+          <div style={{ gridColumn: '1 / -1', padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+            No personalized career recommendations could be generated at this time.
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', paddingBottom: '3rem' }}>

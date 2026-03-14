@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
@@ -13,8 +13,19 @@ const Login = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, signUp, resetPassword } = useAuth();
+  const { currentUser, login, signUp, resetPassword } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (currentUser) {
+      axios.get(`http://localhost:5000/check-profile/${currentUser.uid}`)
+        .then(res => {
+          if (res.data?.profileExists) navigate('/dashboard');
+          else navigate('/profile');
+        })
+        .catch(() => navigate('/profile'));
+    }
+  }, [currentUser, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();

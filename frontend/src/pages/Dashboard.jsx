@@ -23,7 +23,7 @@ const Dashboard = () => {
         if (!currentUser) return;
 
         // Fetch recommendations to know what their target roles are
-        const recRes = await axios.get(`${API}/career-recommendation?uid=${currentUser.uid}`);
+        const recRes = await axios.get(`${API}/recommendations?uid=${currentUser.uid}`);
         const recommendedCareers = recRes.data.recommendedCareers;
 
         // Fetch progress doc
@@ -33,7 +33,9 @@ const Dashboard = () => {
         // Aggregate all unique required skills from all recommended careers
         let allRequiredSkills = new Set();
         recommendedCareers.forEach((career) => {
-          career.requiredSkills.forEach((skill) => allRequiredSkills.add(skill));
+          if (career.skills) {
+            career.skills.forEach((skill) => allRequiredSkills.add(skill));
+          }
         });
         const totalUniqueRequired = Array.from(allRequiredSkills);
 
@@ -182,8 +184,8 @@ const Dashboard = () => {
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {data.careers.map((career, i) => {
-              const reqLen = career.requiredSkills.length;
-              const compLen = career.requiredSkills.filter((s) => data.completedSkills.includes(s)).length;
+              const reqLen = career.skills?.length || 0;
+              const compLen = career.skills?.filter((s) => data.completedSkills.includes(s)).length || 0;
               const pct = reqLen > 0 ? Math.round((compLen / reqLen) * 100) : 0;
               return (
                 <div key={i} style={{ background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
@@ -194,9 +196,16 @@ const Dashboard = () => {
                   <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden', marginBottom: '1rem' }}>
                     <div style={{ width: `${pct}%`, height: '100%', background: pct === 100 ? 'var(--success)' : 'var(--primary)', transition: 'width 0.5s ease' }} />
                   </div>
-                  <Link to={`/skill-gap/${career.id}`} style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                    Continue Path &rarr;
-                  </Link>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    {career.skills?.map((skill, j) => {
+                      const isComplete = data.completedSkills.includes(skill);
+                      return (
+                        <button key={j} onClick={() => handleSkillToggle(skill)} style={{ fontSize: '0.8rem', padding: '4px 8px', borderRadius: '4px', background: isComplete ? 'var(--success)' : 'rgba(255,255,255,0.1)', color: isComplete ? '#000' : '#fff', border: 'none', cursor: 'pointer' }}>
+                          {isComplete ? '✓ ' : ''}{skill}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
