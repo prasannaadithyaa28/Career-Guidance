@@ -20,8 +20,19 @@ const Recommendation = () => {
         const fetchRecommendations = async () => {
             try {
                 if (!currentUser) return;
-                const res = await axios.get(`http://localhost:5000/career-recommendation?uid=${currentUser.uid}`);
-                setData(res.data);
+                // Try to get cached recommendations first
+                try {
+                    const res = await axios.get(`http://localhost:5000/recommendations?uid=${currentUser.uid}`);
+                    setData(res.data);
+                } catch (err) {
+                    if (err.response?.status === 404) {
+                        // Generate them if not found
+                        const genRes = await axios.post(`http://localhost:5000/recommend-careers`, { uid: currentUser.uid });
+                        setData(genRes.data);
+                    } else {
+                        throw err;
+                    }
+                }
             } catch (err) {
                 console.error(err);
                 setError(err.response?.data?.error || 'Failed to load recommendations. Please take the quiz first.');
@@ -45,7 +56,7 @@ const Recommendation = () => {
             });
             setAiResult(res.data);
         } catch (err) {
-            setAiError('AI suggestion failed. Please check your Gemini API key in the backend .env file.');
+            setAiError('AI suggestion failed. Please check your OpenRouter API key in the backend .env file or try again.');
         } finally {
             setAiLoading(false);
         }
@@ -155,15 +166,22 @@ const Recommendation = () => {
                                         </div>
                                         <h3 style={{ fontSize: '1.5rem', margin: 0 }}>{career.title}</h3>
                                     </div>
-                                    <div style={{ marginBottom: '1.5rem', flexGrow: 1, display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                        {career.requiredSkills.slice(0, 4).map((skill, j) => (
+                                    <div style={{ marginBottom: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                        {career.skills?.map((skill, j) => (
                                             <span key={j} style={{ background: 'rgba(99,102,241,0.15)', color: 'var(--primary)', padding: '4px 12px', borderRadius: '99px', fontSize: '0.85rem' }}>{skill}</span>
                                         ))}
-                                        {career.requiredSkills.length > 4 && <span style={{ padding: '4px 12px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>+{career.requiredSkills.length - 4} more</span>}
                                     </div>
-                                    <Link to={`/skill-gap/${career.id}`} className="btn btn-outline" style={{ justifyContent: 'space-between', width: '100%' }}>
-                                        View Skill Gaps & Path <ArrowRight size={18} />
-                                    </Link>
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <h4 style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>Learning Path:</h4>
+                                        <ol style={{ paddingLeft: '1.2rem', marginBottom: '1rem' }}>
+                                            {career.learningPath?.map((step, k) => <li key={k} style={{ fontSize: '0.9rem', marginBottom: '0.2rem' }}>{step}</li>)}
+                                        </ol>
+                                        <h4 style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>Platforms:</h4>
+                                        <p style={{ fontSize: '0.9rem' }}>{career.platforms?.join(', ')}</p>
+                                    </div>
+                                    <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'center' }}>
+                                         <button onClick={() => alert('Add to tracker functionality in dashboard')} className="btn btn-outline" style={{width: '100%'}}>Add to Tracker</button>
+                                    </div>
                                 </div>
                             ))
                         ) : (

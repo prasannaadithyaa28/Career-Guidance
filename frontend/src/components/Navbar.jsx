@@ -25,7 +25,7 @@ const Navbar = () => {
     <nav className="navbar">
       <Link to="/" className="nav-brand">
         <Compass className="text-primary" size={28} />
-        <span className="text-gradient">SmartPath</span>
+        <span className="text-gradient">SkillPath</span>
       </Link>
       
       <div className="nav-links">

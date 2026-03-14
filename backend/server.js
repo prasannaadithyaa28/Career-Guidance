@@ -3,19 +3,29 @@ const express = require('express');
 const cors = require('cors');
 const { db } = require('./firebaseAdmin');
 const careersData = require('./data/careers.json');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const axios = require('axios');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-
-// Helper to call Gemini
-async function callGemini(prompt) {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(prompt);
-    return result.response.text();
+// Helper to call OpenRouter
+async function callOpenRouter(prompt) {
+    try {
+        const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+            model: 'stepfun/step-3.5-flash:free',
+            messages: [{ role: 'user', content: prompt }]
+        }, {
+            headers: {
+                'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data.choices[0].message.content;
+    } catch (error) {
+        console.error('OpenRouter API error:', error?.response?.data || error.message);
+        throw error;
+    }
 }
 
 // ─── 1. Create Profile ─────────────────────────────────────────────────────────
@@ -62,18 +72,21 @@ app.post('/generate-questions', async (req, res) => {
     try {
         const { name, age, lastStudied } = req.body;
 
-        const prompt = `You are an expert career assessment AI. Generate exactly 10 multiple-choice quiz questions to assess a student's aptitude in: programming, logical reasoning, communication, and tech basics.
+        const prompt = `You are an expert career assessment AI. Generate exactly 10 multiple-choice quiz questions.
+        
+CRITICAL REQUIREMENT: 
+5 of the 10 questions MUST test the student specifically on their background: "${lastStudied || 'General Tech'}".
+The remaining 5 questions should assess general logic, communication, and basic tech skills.
 
 Student profile:
 - Name: ${name || 'Student'}
 - Age: ${age || 'Unknown'}
-- Background: ${lastStudied || 'Not specified'}
+- Background / Last Studied: ${lastStudied || 'Not specified'}
 
 Rules:
 1. Return ONLY valid JSON, no markdown, no extra text.
-2. Each question must have: id (q1-q10), question (string), category (one of: programming|logical|communication|tech_basics), options (array of 3 objects with: text (string), score (object with category key and number value)).
+2. Each question must have: id (q1-q10), question (string), category (one of: programming|logical|communication|tech_basics), options (array of 3 objects with: text (string), score (object with category key and number value)). Note: Use 'programming' or 'tech_basics' as the internal category for the questions about ${lastStudied}.
 3. Correct option should have score value of 10 for its category, wrong options score 0.
-4. Mix categories evenly. Make questions relevant to the student's background.
 
 Return this exact JSON format:
 [
@@ -89,7 +102,7 @@ Return this exact JSON format:
   }
 ]`;
 
-        const raw = await callGemini(prompt);
+        const raw = await callOpenRouter(prompt);
         // Strip markdown code fences if present
         const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
         const questions = JSON.parse(cleaned);
@@ -136,7 +149,7 @@ Programming: ${scores.programming}, Logical: ${scores.logical}, Communication: $
 They skipped ${skipped.length} question(s).
 
 Write a 2-3 sentence encouraging summary of their strengths and what career fields suit them. Be specific and motivating. No bullet points, just a short paragraph.`;
-            aiSummary = await callGemini(summaryPrompt);
+            aiSummary = await callOpenRouter(summaryPrompt);
         } catch (e) {
             aiSummary = 'Great work completing the assessment! Your scores reflect your unique strengths.';
         }
@@ -152,32 +165,69 @@ Write a 2-3 sentence encouraging summary of their strengths and what career fiel
     }
 });
 
-// ─── 5. Career Recommendation (score-based) ────────────────────────────────────
-app.get('/career-recommendation', async (req, res) => {
+// ─── 5. Career Recommendation (AI-based) ────────────────────────────────────
+app.post('/recommend-careers', async (req, res) => {
+    try {
+        const { uid, interest } = req.body;
+        if (!uid) return res.status(400).json({ error: 'Missing uid' });
+
+        const userDoc = await db.collection('users').doc(uid).get();
+        const userData = userDoc.exists ? userDoc.data() : { lastStudied: 'Unknown' };
+
+        let scoresContext = '';
+        const quizDoc = await db.collection('quizResults').doc(uid).get();
+        let aiSummary = '';
+        if (quizDoc.exists) {
+            const docData = quizDoc.data();
+            const scores = docData.scores;
+            aiSummary = docData.aiSummary || '';
+            scoresContext = `Their aptitude scores — Programming: ${scores.programming}, Logical: ${scores.logical}, Communication: ${scores.communication}, Tech Basics: ${scores.tech_basics}.`;
+        }
+
+        const interestContext = interest ? `They also mentioned an interest in: "${interest}".` : '';
+
+        const prompt = `You are a career guidance AI. A student needs 3 career suggestions based on their profile.
+CRITICAL: The suggested careers MUST highly align with their previous background in "${userData.lastStudied}".
+
+Background: ${userData.lastStudied}.
+${scoresContext}
+${interestContext}
+
+Generate exactly 3 career suggestions. Return ONLY valid JSON, no markdown.
+Each suggestion must precisely match this format:
+{
+  "title": "Career Title",
+  "skills": ["skill 1", "skill 2", "skill 3", "skill 4", "skill 5"],
+  "learningPath": ["Learning Step 1", "Learning Step 2", "Learning Step 3", "Learning Step 4", "Learning Step 5"],
+  "platforms": ["Platform 1", "Platform 2"]
+}
+
+Return an array of 3 objects formatted exactly as above.`;
+
+        const raw = await callOpenRouter(prompt);
+        let cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        const result = JSON.parse(cleaned);
+        
+        await db.collection('recommendations').doc(uid).set({
+            recommendedCareers: result,
+            aiSummary,
+            timestamp: new Date().toISOString()
+        });
+        
+        res.json({ recommendedCareers: result, aiSummary });
+    } catch (error) {
+        console.error('Career recommendation error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/recommendations', async (req, res) => {
     try {
         const { uid } = req.query;
         if (!uid) return res.status(400).json({ error: 'Missing uid' });
-
-        const doc = await db.collection('quizResults').doc(uid).get();
-        if (!doc.exists) return res.status(404).json({ error: 'No quiz results found. Take the quiz first.' });
-
-        const { scores, aiSummary } = doc.data();
-        let recommendedCareers = [];
-
-        for (const career of careersData) {
-            let matches = true;
-            for (const [category, requiredScore] of Object.entries(career.criteria)) {
-                if ((scores[category] || 0) < requiredScore) { matches = false; break; }
-            }
-            if (matches) recommendedCareers.push(career);
-        }
-
-        // If no matches, return top 2 careers sorted by score fit
-        if (recommendedCareers.length === 0) {
-            recommendedCareers = careersData.slice(0, 2);
-        }
-
-        res.json({ recommendedCareers, userScores: scores, aiSummary: aiSummary || '' });
+        const doc = await db.collection('recommendations').doc(uid).get();
+        if (!doc.exists) return res.status(404).json({ error: 'No recommendations found' });
+        res.json(doc.data());
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -211,7 +261,7 @@ Return ONLY valid JSON, no markdown:
   ]
 }`;
 
-        const raw = await callGemini(prompt);
+        const raw = await callOpenRouter(prompt);
         const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
         const result = JSON.parse(cleaned);
         res.json(result);
@@ -374,7 +424,7 @@ Based on this, return a JSON object with:
 Return ONLY valid JSON, no markdown, no explanation. Example format:
 {"career":"...","skills":["..."],"courses":["..."],"roadmap":["..."]}`;
 
-            const raw = await callGemini(prompt);
+            const raw = await callOpenRouter(prompt);
             const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
             const aiResult = JSON.parse(cleaned);
             if (aiResult.career && aiResult.skills && aiResult.courses && aiResult.roadmap) {
