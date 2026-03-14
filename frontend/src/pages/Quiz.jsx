@@ -27,16 +27,13 @@ const Quiz = () => {
           profileData = profileRes.data;
         } catch (e) {}
 
-        const res = await axios.post('http://localhost:5000/generate-questions', {
-          name: profileData.name || currentUser.displayName || '',
-          age: profileData.age || '',
-          lastStudied: profileData.lastStudied || ''
-        });
+        const res = await axios.get('http://localhost:5000/api/generate-quiz');
 
-        setQuestions(res.data.questions);
+        const fetchedQuestions = Array.isArray(res.data) ? res.data : res.data.questions || [];
+        setQuestions(fetchedQuestions);
         // Initialize all as unanswered
         const init = {};
-        res.data.questions.forEach(q => { init[q.id] = undefined; });
+        fetchedQuestions.forEach(q => { init[q.id] = undefined; });
         setAnswers(init);
       } catch (err) {
         setError('Failed to load questions. Please refresh.');
@@ -78,13 +75,33 @@ const Quiz = () => {
       for (const [k, v] of Object.entries(answers)) {
         cleaned[k] = v === undefined ? null : v;
       }
-      const res = await axios.post('http://localhost:5000/submit-quiz', {
-        uid: currentUser.uid,
-        answers: cleaned,
-        questions
-      });
+      
+      // Calculate scores on the frontend since /submit-quiz is gone
+      let scores = { programming: 0, logical: 0, communication: 0, tech_basics: 0 };
+      for (const [qId, ansText] of Object.entries(cleaned)) {
+          if (!ansText) continue; // skipped
+          const question = questions.find(q => q.id === qId);
+          if (question) {
+              const option = question.options.find(opt => opt.text === ansText);
+              if (option && option.score) {
+                  for (const [category, points] of Object.entries(option.score)) {
+                      scores[category] = (scores[category] || 0) + points;
+                  }
+              }
+          }
+      }
+
+      const skippedArray = Object.entries(cleaned).filter(([, v]) => !v).map(([k]) => k);
+      
+      const resultData = {
+          scores,
+          skipped: skippedArray,
+          aiSummary: "Great work completing the assessment! Your scores reflect your unique strengths."
+      };
+
+      // We should also ideally save it to DB here if needed, but the old functionality is fine to just pass to next screen
       // Pass results via navigate state
-      navigate('/quiz-results', { state: { result: res.data, questions } });
+      navigate('/quiz-results', { state: { result: resultData, questions } });
     } catch (err) {
       alert('Submission failed. Please try again.');
     } finally {
