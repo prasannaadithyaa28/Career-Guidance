@@ -15,7 +15,7 @@ An AI-powered career guidance platform that helps students discover suitable tec
 ## Tech Stack
 
 - **Backend**: Node.js, Express
-- **AI**: Google Generative AI (Gemini)
+- **API**: Open Router API - stepfun/step-3.5-flash:free
 - **Database**: Firebase Firestore (via `firebaseAdmin`)
 - **Other**: CORS, environment variables via `dotenv`
 
@@ -50,7 +50,7 @@ npm install
 Create a `.env` file inside the `backend` folder with:
 
 ```bash
-GEMINI_API_KEY=your_gemini_api_key_here
+OPEN_ROUTER_API_KEY=your_api_key
 FIREBASE_PROJECT_ID=your_project_id
 FIREBASE_CLIENT_EMAIL=your_client_email
 FIREBASE_PRIVATE_KEY="your_private_key_with_newlines_escaped"
@@ -87,10 +87,3 @@ The server will run on `http://localhost:5000` by default (or the `PORT` you set
 
 - Ensure environment variables are configured in your hosting platform (e.g. Render, Railway, Vercel backend, or a VM).
 - Protect your Gemini and Firebase credentials; never commit `.env` to version control.
-
-## Future Improvements
-
-- Add authentication (e.g. Firebase Auth) to secure user data.
-- Build a dedicated frontend for students and counselors.
-- Add localization and multi-language support.
-
